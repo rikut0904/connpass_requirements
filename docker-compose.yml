@@ -1,0 +1,56 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: connpass
+      POSTGRES_PASSWORD: connpass
+      POSTGRES_DB: connpass
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U connpass']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgres://connpass:connpass@postgres:5432/connpass?sslmode=disable
+      JWT_SECRET: local-secret
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+      DISCORD_REDIRECT_URI: http://localhost:3000/login
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      CONNPASS_BASE_URL: ${CONNPASS_BASE_URL:-https://connpass.com/api/v2/events/}
+      CONNPASS_API_KEY: ${CONNPASS_API_KEY}
+      CONNPASS_REQUEST_INTERVAL: ${CONNPASS_REQUEST_INTERVAL:-1s}
+      SESSION_MODE: ${SESSION_MODE:-develop}
+    ports:
+      - '8080:8080'
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8080/api
+      NEXT_PUBLIC_DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      NEXT_PUBLIC_DISCORD_REDIRECT_URI: http://localhost:3000/login
+    ports:
+      - '3000:3000'
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  postgres-data:

@@ -1,0 +1,15 @@
+# Go build artifacts
+bin/
+*.exe
+*.log
+
+# Module/vendor directories
+vendor/
+
+# Local env files
+.env
+
+# IDE
+.idea/
+.vscode/
+*.iml

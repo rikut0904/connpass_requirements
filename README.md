@@ -269,7 +269,7 @@ Web上で各サーバーごとに設定できるようにする。
 1. **アクティブなルール取得**: `is_active = true` のルールをDBから取得
 2. **ループ処理**: 各ルールに対して以下を実行
    - ルールに紐づくキーワードを取得
-   - 各キーワードでconnpass APIを呼び出し（2秒間隔）
+   - 各キーワードでconnpass API v2を呼び出し（1秒間隔、APIキー必須）
    - 取得したイベント情報を `events_cache` に保存
    - 通知条件判定（新規公開・申込開始・残席わずか・締切前）
    - 条件に合致すればDiscord通知送信
@@ -449,6 +449,24 @@ connpass-discord-notifier/
 - **Docker**
 - **Docker Compose**
 
+### 🔑 connpass APIキーの取得
+
+**connpass API v2を利用するには、APIキーの取得が必須です:**
+
+1. **connpassにログイン**: https://connpass.com/login/
+2. **API設定ページにアクセス**: https://connpass.com/about/api/
+3. **APIキーを発行**: 画面の指示に従ってAPIキーを生成
+4. **環境変数に設定**: 取得したAPIキーを `.env` ファイルに追加
+
+```bash
+CONNPASS_API_KEY=your_actual_api_key_here
+```
+
+**注意事項**:
+- API v1は2025年末に廃止予定です
+- API v2はすべてのリクエストに `X-API-Key` ヘッダーが必須
+- レート制限: 1秒間に1リクエストまで
+
 ---
 
 ## 15. セキュリティ・運用
@@ -468,8 +486,10 @@ connpass-discord-notifier/
 
 ### 📊 APIレート制限対策
 
-**connpass API**:
-- リクエスト間隔: 2秒
+**connpass API v2**:
+- **APIキー認証**: 必須（`X-API-Key` ヘッダー）
+- **レート制限**: 1秒間に1リクエストまで
+- リクエスト間隔: 1秒
 - 429エラー時: 60秒待機してリトライ
 
 **Discord API**:
@@ -546,7 +566,8 @@ connpass-discord-notifier/
 
 ### 開発リソース
 
-- **connpass API仕様**: https://connpass.com/about/api/
+- **connpass API v2仕様**: https://connpass.com/about/api/v2/
+- **connpass API v2 OpenAPI定義**: https://connpass.com/about/api/v2/openapi.json
 - **Discord API仕様**: https://discord.com/developers/docs
 - **discordgo ドキュメント**: https://pkg.go.dev/github.com/bwmarrin/discordgo
 - **Next.js ドキュメント**: https://nextjs.org/docs
@@ -555,6 +576,13 @@ connpass-discord-notifier/
 ---
 
 ## 📝 変更履歴
+
+- **2025-11-11**: connpass API v2対応
+  - API v2への移行（APIキー認証必須）
+  - レート制限を2秒→1秒に変更
+  - エンドポイント変更（`/api/v1/event/` → `/api/v2/events/`）
+  - レスポンス構造の変更（`event_id` → `id`, `series` → `group`）
+  - 環境変数 `CONNPASS_API_KEY` を追加
 
 - **2025-11-05**: 初版作成
   - Go 1.25.2対応
@@ -565,5 +593,6 @@ connpass-discord-notifier/
 ---
 
 **作成日**: 2025-11-05
-**バージョン**: 1.0
+**最終更新**: 2025-11-11
+**バージョン**: 1.1
 **作成者**: [rikut0904]
