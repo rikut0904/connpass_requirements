@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,7 @@ type Config struct {
 	SchedulerInterval        time.Duration
 	SessionMode              string
 	SessionDuration          time.Duration
+	CORSAllowOrigins         []string
 }
 
 // Load は環境変数から設定値を読み込み、バリデーションを行う。
@@ -76,6 +78,10 @@ func Load() (Config, error) {
 		cfg.SessionDuration = 90 * 24 * time.Hour // 3ヶ月
 	}
 
+	// CORS許可オリジン（カンマ区切り）
+	corsOrigins := getEnv("CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+	cfg.CORSAllowOrigins = splitAndTrim(corsOrigins)
+
 	if cfg.DatabaseURL == "" {
 		return cfg, fmt.Errorf("DATABASE_URL is required")
 	}
@@ -100,4 +106,16 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func splitAndTrim(s string) []string {
+	parts := strings.Split(s, ",")
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		trimmed := strings.TrimSpace(p)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }
