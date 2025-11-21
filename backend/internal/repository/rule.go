@@ -75,7 +75,7 @@ func (r *RuleRepository) ListByUserAndGuild(ctx context.Context, userID int64, g
 	}
 	defer rows.Close()
 
-	var rules []models.Rule
+	rules := make([]models.Rule, 0)
 
 	for rows.Next() {
 		var rule models.Rule

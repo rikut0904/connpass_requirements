@@ -28,6 +28,24 @@ export default function RulesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [deleting, setDeleting] = useState<number | null>(null);
+
+  const handleDelete = useCallback(async (ruleId: number, ruleName: string) => {
+    if (!window.confirm(`「${ruleName}」を削除しますか？この操作は取り消せません。`)) {
+      return;
+    }
+
+    try {
+      setDeleting(ruleId);
+      await apiClient.delete(`/rules/${ruleId}`);
+      setRules((prev) => prev.filter((r) => r.id !== ruleId));
+    } catch (err) {
+      console.error(err);
+      setError('ルールの削除に失敗しました');
+    } finally {
+      setDeleting(null);
+    }
+  }, []);
 
   useEffect(() => {
     const check = async () => {
@@ -182,9 +200,18 @@ export default function RulesPage() {
             <Card key={rule.id}>
               <CardHeader>
                 <CardTitle>{rule.name}</CardTitle>
-                <Link className="text-sm text-primary" href={`/rules/${rule.id}/edit`}>
-                  編集する
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link className="text-sm text-primary" href={`/rules/${rule.id}/edit`}>
+                    編集する
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(rule.id, rule.name)}
+                    disabled={deleting === rule.id}
+                    className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+                  >
+                    {deleting === rule.id ? '削除中...' : '削除'}
+                  </button>
+                </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-slate-600">{rule.description || '説明は未設定です。'}</p>
