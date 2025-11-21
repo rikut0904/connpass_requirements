@@ -78,8 +78,9 @@ func main() {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     cfg.CORSAllowOrigins,
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "Accept"},
 		AllowCredentials: true,
+		ExposeHeaders:    []string{"Content-Length", "Content-Type"},
 	}))
 
 	e.GET("/healthz", func(c echo.Context) error {

@@ -52,7 +52,7 @@ func (h *AuthHandler) HandleLogout(c echo.Context) error {
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 		MaxAge:   -1,
 	}
 	c.SetCookie(cookie)
@@ -158,7 +158,7 @@ func (h *AuthHandler) HandleCallback(c echo.Context) error {
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().Add(h.cfg.SessionDuration),
 	}
 	c.SetCookie(cookie)
